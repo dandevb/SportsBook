@@ -22,21 +22,22 @@ namespace SportsBook.Domain.Model
         [StringLength(100)]
         public string DisplayName { 
             get {
-                if (String.IsNullOrWhiteSpace(DisplayName))
+                if (String.IsNullOrWhiteSpace(this.DisplayName))
                 {
-                    return Name;
-                }else
-                {
-                    return this.DisplayName;
+                    this.DisplayName = Name;
                 }
+
+                return this.DisplayName;
+            }
+            set {
+                this.DisplayName = value;
             } 
-            set { DisplayName = value; } 
         }
 
         [StringLength(150)]
         public string Slug {
-            get { return this.Slug.ToLower(); } 
-            set { Slug = value.ToLower(); } 
+            get { return this.Slug; }
+            set { this.Slug = value.ToLower(); }
         }
 
         [DefaultValue(0)]
@@ -45,6 +46,27 @@ namespace SportsBook.Domain.Model
         [DefaultValue(false)]
         public bool Active { get; set; }
 
+        //Navigation property
         public virtual List<SportEvent> SportEventList { get; set; }
+
+        //Methods
+        public void CheckActive()
+        {
+            if (SportEventList == null || SportEventList.Count == 0)
+            {
+                this.Active = false;
+                return;
+            }
+
+            //Look for at least one event that is active
+            foreach (var sportEvent in SportEventList)
+            {
+                if (sportEvent.Event.Active == true)
+                {
+                    return;
+                }
+            }
+            this.Active = false; //Didn't find active events so we set the sport to false
+        }
     }
 }

@@ -1,9 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SportsBook.Domain.Enums;
 using SportsBook.Domain.Model;
-using System;
 
 namespace SportsBook.Infrastructure.Configurations
 {
@@ -17,7 +14,8 @@ namespace SportsBook.Infrastructure.Configurations
             marketConfiguration
                 .HasOne(pt => pt.Event)
                 .WithMany(t => t.MarketList)
-                .HasForeignKey(pt => pt.EventForeignKey);
+                .HasForeignKey(pt => pt.EventForeignKey)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

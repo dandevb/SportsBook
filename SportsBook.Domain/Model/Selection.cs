@@ -15,6 +15,7 @@ namespace SportsBook.Domain.Model
         }
 
         [Key]
+        [Column("SelectionId")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
@@ -28,6 +29,16 @@ namespace SportsBook.Domain.Model
         [DefaultValue(false)]
         public bool Active { get; set; }
 
+        [StringLength(50)]
         public SelectionOutcome Outcome { get; set; }
+
+        //Navigation properties & foreign keys
+        public int EventId { get; set; }
+
+        public virtual Event Event { get; set; }
+
+        public int MarketId { get; set; }
+
+        public virtual Market Market { get; set; }
     }
 }

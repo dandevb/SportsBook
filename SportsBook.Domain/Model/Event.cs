@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace SportsBook.Domain.Model
 {
@@ -26,9 +27,11 @@ namespace SportsBook.Domain.Model
         public string Name { get; set; }
 
         [DataType(DataType.Text)]
+        [StringLength(50)]
         public EventType EventType { get; set; }
 
         [DataType(DataType.Text)]
+        [StringLength(50)]
         public EventStatusType Status { get; set; }
 
         [StringLength(150)]
@@ -41,8 +44,18 @@ namespace SportsBook.Domain.Model
         [DefaultValue(false)]
         public bool Active { get; set; }
 
+        //Navigation properties
         public virtual List<SportEvent> SportEventList { get; set; }
 
         public virtual List<Market> MarketList { get; set; }
+
+        //Methods
+        public void CheckActive()
+        {
+            if (MarketList == null || !MarketList.Any() || MarketList.Count(x => x.Active == true) == 0)
+            {
+                this.Active = false;
+            }
+        }
     }
 }

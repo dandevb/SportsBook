@@ -1,9 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SportsBook.Domain.Model;
 using SportsBook.Infrastructure.Configurations;
-using System;
-using System.Data;
-using System.Data.SqlClient;
 
 namespace SportsBook.Infrastructure
 {
@@ -35,15 +32,9 @@ namespace SportsBook.Infrastructure
         {
             modelBuilder.ApplyConfiguration(new SportEntityConfiguration());
             modelBuilder.ApplyConfiguration(new EventEntityConfiguration());
-
-
-
+            modelBuilder.ApplyConfiguration(new SelectionEntityConfiguration());
+            modelBuilder.ApplyConfiguration(new MarketEntityConfiguration());
             modelBuilder.ApplyConfiguration(new SportEventEntityConfiguration());
-            
-            //modelBuilder.ApplyConfiguration(new OrderItemEntityTypeConfiguration());
-            //modelBuilder.ApplyConfiguration(new CardTypeEntityTypeConfiguration());
-            //modelBuilder.ApplyConfiguration(new OrderStatusEntityTypeConfiguration());
-            //modelBuilder.ApplyConfiguration(new BuyerEntityTypeConfiguration());
         }
     }
 }
