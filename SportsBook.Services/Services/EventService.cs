@@ -6,22 +6,20 @@ using System.Linq;
 
 namespace SportsBook.Services.Services
 {
-    public class EventService: IServices
+    public class EventService: BaseService
     {
-        private readonly IGenericRepository<Event> _repo;
-        private readonly IGenericRepository<Market> _marketRepo;
-        private readonly IGenericRepository<Sport> _sportRepo;
+        #region Properties & constructors
+        private readonly IGenericRepository<Event> _repoEvent;
+        private readonly IGenericRepository<Market> _repoMarket;
+        private readonly IGenericRepository<Sport> _repoSport;
 
-        private readonly DTOAssembler _assembler;
-
-
-        public EventService(IGenericRepository<Event> repo, IGenericRepository<Market> marketRepo, IGenericRepository<Sport> sportRepo, DTOAssembler assembler)
+        public EventService(IUnitOfWork uow, DTOAssembler assembler) : base(uow, assembler)
         {
-            _repo = repo;
-            _marketRepo = marketRepo;
-            _sportRepo = sportRepo;
-            _assembler = assembler;
+            _repoEvent = _uow.GetRepository<Event>(); ;
+            _repoMarket = _uow.GetRepository<Market>(); ;
+            _repoSport = _uow.GetRepository<Sport>(); ;
         }
+        #endregion
 
         public bool Create(EventDTO newEvent)
         {
@@ -30,7 +28,7 @@ namespace SportsBook.Services.Services
                 newEvent.Active = false; //Should be created with Active false until a new market is created for it
                 var _event = _assembler.WriteEntity(newEvent);
 
-                var _sport = _sportRepo.GetByID(newEvent.SportId);
+                var _sport = _repoSport.GetByID(newEvent.SportId);
 
                 if (_sport == null)
                 {
@@ -47,7 +45,8 @@ namespace SportsBook.Services.Services
                     }
                 };
 
-                _repo.Insert(_event);
+                _repoEvent.Add(_event);
+                _uow.Commit();
 
                 return true;
             }
@@ -55,6 +54,7 @@ namespace SportsBook.Services.Services
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 
@@ -65,7 +65,7 @@ namespace SportsBook.Services.Services
         {
             try
             {
-                Event _event = _repo.GetByID(eventId);
+                Event _event = _repoEvent.GetByID(eventId);
 
                 //Delete all markets linked to the event first
                 if (_event != null && _event.MarketList != null)
@@ -73,11 +73,12 @@ namespace SportsBook.Services.Services
                     //TODO: improve this with a delete range option
                     foreach (var market in _event.MarketList)
                     {
-                        _marketRepo.Delete(market.Id);
+                        _repoMarket.Delete(market);
                     }
                 }
 
-                _repo.Delete(_event);
+                _repoEvent.Delete(_event);
+                _uow.Commit();
 
                 return true;
             }
@@ -85,6 +86,7 @@ namespace SportsBook.Services.Services
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 
@@ -96,7 +98,7 @@ namespace SportsBook.Services.Services
             try
             {
                 Event _event = _assembler.WriteEntity(dto);
-                _repo.Update(_event);
+                _repoEvent.Update(_event);
 
                 //If the event is disabled then we check all the sports linked to it
                 if (_event.Active == false)
@@ -109,12 +111,15 @@ namespace SportsBook.Services.Services
                     }
                 }
 
+                _uow.Commit();
+
                 return true;
             }
             catch (System.Exception ex)
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 

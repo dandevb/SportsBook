@@ -5,43 +5,43 @@ using System;
 
 namespace SportsBook.Services.Services
 {
-    public class SportService: IServices
+    public class SportService : BaseService
     {
-        private readonly IGenericRepository<Sport> _repo;
-        private readonly IGenericRepository<Event> _eventRepo;
-        private readonly DTOAssembler _assembler;
+        #region Properties & constructors
+        private readonly IGenericRepository<Sport> _repoSport;
+        private readonly IGenericRepository<Event> _repoEvent;       
 
-        public SportService(IGenericRepository<Sport> repo, IGenericRepository<Event> eventrepo, DTOAssembler assembler)
+        public SportService(IUnitOfWork uow, DTOAssembler assembler): base(uow, assembler)
         {
-            _repo = repo;
-            _eventRepo = eventrepo;
-            _assembler = assembler;
+            _repoSport = _uow.GetRepository<Sport>();
+            _repoEvent = _uow.GetRepository<Event>();
         }
+        #endregion
 
         public bool Create(SportDTO newSport)
         {
             try
             {
                 newSport.Active = false; //Should always start false until a new active event is created
-                _repo.Insert(_assembler.WriteEntity(newSport));
+                _repoSport.Add(_assembler.WriteEntity(newSport));
+                _uow.Commit();
 
                 return true;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
-            
-            return false;
         }
 
         public bool Delete(int sportId)
         {
             try
             {
-                Sport _sport = _repo.GetByID(sportId);
+                Sport _sport = _repoSport.GetByID(sportId);
 
                 //Delete all events linked to the sport first
                 if (_sport != null && _sport.SportEventList != null)
@@ -49,22 +49,23 @@ namespace SportsBook.Services.Services
                     //TODO: improve this with a delete range option
                     foreach (var se in _sport.SportEventList)
                     {
-                        _eventRepo.Delete(se.EventId);
+                        _repoEvent.Delete(se.Event);
                     }
                 }
 
-                _repo.Delete(_sport);
+                _repoSport.Delete(_sport);
+                _uow.Commit();
 
                 return true;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 
-            return false;
         }
 
         public bool Update(SportDTO dto)
@@ -72,27 +73,23 @@ namespace SportsBook.Services.Services
             try
             {
                 Sport sport = _assembler.WriteEntity(dto);
-                _repo.Update(sport);
+                _repoSport.Update(sport);
 
                 sport.CheckActive();
                 //Business question: should we disable all events, selections and market under a sport that is disabled?
+                _uow.Commit();
 
                 return true;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
-
-            return false;
         }
 
-        //public IEnumerable<SportDTO> Search()
-        //{
-
-        //}
     }
 
 

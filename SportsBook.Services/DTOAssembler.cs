@@ -1,8 +1,6 @@
 ﻿using SportsBook.Domain.Model;
 using SportsBook.Services.DTO;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SportsBook.Services
 {

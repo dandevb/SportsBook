@@ -7,21 +7,20 @@ using System.Text;
 
 namespace SportsBook.Services.Services
 {
-    public class MarketService: IServices
+    public class MarketService: BaseService
     {
-        private readonly IGenericRepository<Market> _repo;
-        private readonly IGenericRepository<Event> _eventRepo;
-        private readonly IGenericRepository<Selection> _selectionRepo;
+        #region Properties & constructors
+        private readonly IGenericRepository<Market> _repoMarket;
+        private readonly IGenericRepository<Event> _repoEvent;
+        private readonly IGenericRepository<Selection> _repoSelection;
 
-        private readonly DTOAssembler _assembler;
-
-        public MarketService(IGenericRepository<Market> repo, IGenericRepository<Event> eventRepo, IGenericRepository<Selection> selectionRepo, DTOAssembler assembler)
+        public MarketService(IUnitOfWork uow, DTOAssembler assembler): base(uow, assembler)
         {
-            _repo = repo;
-            _eventRepo = eventRepo;
-            _selectionRepo = selectionRepo;
-            _assembler = assembler;
+            _repoMarket = _uow.GetRepository<Market>();
+            _repoEvent = _uow.GetRepository<Event>();
+            _repoSelection = _uow.GetRepository<Selection>();
         }
+        #endregion
 
         public bool Create(MarketDTO market)
         {
@@ -30,7 +29,7 @@ namespace SportsBook.Services.Services
                 market.Active = false; //Should be created with Active false until a new selection is created for it
                 Market newMarket = _assembler.WriteEntity(market);
 
-                var _event = _eventRepo.GetByID(market.EventForeignKey);
+                var _event = _repoEvent.GetByID(market.EventForeignKey);
 
                 if (_event == null)
                 {
@@ -38,7 +37,8 @@ namespace SportsBook.Services.Services
                     throw new KeyNotFoundException("Event ID not found");
                 }
 
-                _repo.Insert(newMarket);
+                _repoMarket.Add(newMarket);
+                _uow.Commit();
 
                 return true;
             }
@@ -46,6 +46,7 @@ namespace SportsBook.Services.Services
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 
@@ -56,7 +57,7 @@ namespace SportsBook.Services.Services
         {
             try
             {
-                Market _market = _repo.GetByID(MarketId);
+                Market _market = _repoMarket.GetByID(MarketId);
 
                 //Delete all selections linked to the market first
                 if (_market != null && _market.SelectionList != null)
@@ -64,18 +65,20 @@ namespace SportsBook.Services.Services
                     //TODO: improve this with a delete range option
                     foreach (var selec in _market.SelectionList)
                     {
-                        _selectionRepo.Delete(selec.Id);
+                        _repoSelection.Delete(selec);
                     }
                 }
 
-                _repo.Delete(_market);
+                _repoMarket.Delete(_market);
+                _uow.Commit();
 
                 return true;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 
@@ -87,20 +90,22 @@ namespace SportsBook.Services.Services
             try
             {
                 Market market = _assembler.WriteEntity(dto);
-                _repo.Update(market);
+                _repoMarket.Update(market);
 
                 //If market is disabled then we check the father event for possible disable
                 if (market.Active == false)
                 {
                     market.Event.CheckActive();
                 }
+                _uow.Commit();
 
                 return true;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 

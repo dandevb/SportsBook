@@ -1,40 +1,64 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SportsBook.Domain.Model;
+using SportsBook.Domain.SeedWork;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SportsBook.Infrastructure.Repository
 {
-    public class UnitOfWork : IDisposable
+    public class UnitOfWork<TContext> : IUnitOfWork<TContext>
+        where TContext : DbContext, IDisposable
     {
-        public DbContext Context { get; }
-        private bool disposed = false;
+        private Dictionary<(Type type, string name), object> _repositories;
+        public TContext Context { get; }
 
-        public UnitOfWork(DbContext context)
+        public UnitOfWork(TContext context)
         {
-            Context = context;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public void Save()
+        public int Commit()
         {
-            Context.SaveChanges();
+            return Context.SaveChanges();
+        }
+        public async Task<int> CommitAsync()
+        {
+            return await Context.SaveChangesAsync();
+        }
+
+        public void Rollback()
+        {
+            throw new NotImplementedException();
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            Context.Dispose();
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : class, IEntity
         {
-            if (!this.disposed)
-            {
-                if (disposing)
-                {
-                    Context.Dispose();
-                }
-            }
-            this.disposed = true;
+            return (IGenericRepository<TEntity>)GetOrAddRepository(typeof(TEntity), new GenericRepository<TEntity>(Context));
         }
+
+        
+        IGenericRepositoryAsync<TEntity> IUnitOfWork.GetRepositoryAsync<TEntity>() where TEntity : class
+        {
+            return (IGenericRepositoryAsync<TEntity>)GetOrAddRepository(typeof(TEntity), new GenericRepositoryAsync<TEntity>(Context));
+        }
+
+        internal object GetOrAddRepository(Type type, object repo)
+        {
+            _repositories ??= new Dictionary<(Type type, string Name), object>();
+
+            if (_repositories.TryGetValue((type, repo.GetType().FullName), out var repository)) return repository;
+
+            _repositories.Add((type, repo.GetType().FullName), repo);
+
+            return repo;
+        }
+
+        
     }
 }

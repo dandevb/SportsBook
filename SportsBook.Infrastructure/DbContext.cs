@@ -13,11 +13,6 @@ namespace SportsBook.Infrastructure
         public DbSet<Selection> Selections { get; set; }
         public DbSet<SportEvent> SportEvents { get; set; }
 
-        public SportsBookDB()
-        {
-
-        }
-
         public SportsBookDB(DbContextOptions<SportsBookDB> options) : base(options)
         {   
         }

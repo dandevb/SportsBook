@@ -6,21 +6,20 @@ using System.Collections.Generic;
 
 namespace SportsBook.Services.Services
 {
-    public class SelectionService: IServices
+    public class SelectionService: BaseService
     {
-        private readonly IGenericRepository<Selection> _repo;
-        private readonly IGenericRepository<Event> _eventRepo;
-        private readonly IGenericRepository<Market> _marketRepo;
+        #region Properties & constructors
+        private readonly IGenericRepository<Selection> _repoSelection;
+        private readonly IGenericRepository<Event> _repoEvent;
+        private readonly IGenericRepository<Market> _repoMarket;
 
-        private readonly DTOAssembler _assembler;
-
-        public SelectionService(IGenericRepository<Selection> repo, IGenericRepository<Event> eventRepo, IGenericRepository<Market> marketRepo, DTOAssembler assembler)
+        public SelectionService(IUnitOfWork uow, DTOAssembler assembler) : base(uow, assembler)
         {
-            _repo = repo;
-            _eventRepo = eventRepo;
-            _marketRepo = marketRepo;
-            _assembler = assembler;
+            _repoSelection = _uow.GetRepository<Selection>(); ;
+            _repoEvent = _uow.GetRepository<Event>(); ;
+            _repoMarket = _uow.GetRepository<Market>(); ;
         }
+        #endregion
 
         public bool Create(SelectionDTO selec)
         {
@@ -29,21 +28,24 @@ namespace SportsBook.Services.Services
                 Selection newSelection = _assembler.WriteEntity(selec);
 
                 //Validate linked entities
-                var _market = _marketRepo.GetByID(selec.MarketId);
-                var _event = _eventRepo.GetByID(selec.EventId);
+                var _market = _repoMarket.GetByID(selec.MarketId);
+                var _event = _repoEvent.GetByID(selec.EventId);
 
                 if (_market == null )
                 {
+                    //TODO: replace for proper error handling
                     Console.WriteLine("Market ID not found. Selection cannot be created.");
                     throw new KeyNotFoundException("Market ID not found");
                 }
                 if (_event == null)
                 {
+                    //TODO: replace for proper error handling
                     Console.WriteLine("Event ID not found. Selection cannot be created.");
                     throw new KeyNotFoundException("Event ID not found");
                 }
 
-                _repo.Insert(newSelection);
+                _repoSelection.Add(newSelection);
+                _uow.Commit();
 
                 return true;
             }
@@ -51,6 +53,7 @@ namespace SportsBook.Services.Services
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 
@@ -61,13 +64,14 @@ namespace SportsBook.Services.Services
         {
             try
             {
-                Selection selec = _repo.GetByID(SelectionId);
+                Selection selec = _repoSelection.GetByID(SelectionId);
 
                 Market _marketId = selec.Market;
 
-                _repo.Delete(selec);
+                _repoSelection.Delete(selec);
 
                 _marketId.CheckActive(); //If no selections exist or at least one is active, then market is disabled
+                _uow.Commit();
 
                 return true;
             }
@@ -75,6 +79,7 @@ namespace SportsBook.Services.Services
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 
@@ -86,12 +91,13 @@ namespace SportsBook.Services.Services
             try
             {
                 Selection selection = _assembler.WriteEntity(dto);
-                _repo.Update(selection);
+                _repoSelection.Update(selection);
 
                 if (!selection.Active)
                 {
                     selection.Market.CheckActive();
                 }
+                _uow.Commit();
 
                 return true;
             }
@@ -99,6 +105,7 @@ namespace SportsBook.Services.Services
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
+                _uow.Dispose();
                 throw ex;
             }
 

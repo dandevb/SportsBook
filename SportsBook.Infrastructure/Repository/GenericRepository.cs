@@ -4,21 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace SportsBook.Infrastructure.Repository
 {
-    public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class, IEntity
+    public class GenericRepository<TEntity> : BaseRepository<TEntity>, IGenericRepository<TEntity> where TEntity : class, IEntity
     {
-        //internal DbContext context;
-        internal DbSet<TEntity> _dbSet;
-        private readonly UnitOfWork _unitOfWork;
-        public GenericRepository(UnitOfWork unitOfWork)
+        public GenericRepository(DbContext context) : base(context)
         {
-            _unitOfWork = unitOfWork;
-            _dbSet = _unitOfWork.Context.Set<TEntity>();
+
         }
 
+        #region Get methods
         public virtual IEnumerable<TEntity> Get(
             Expression<Func<TEntity, bool>> filter = null,
             Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
@@ -52,33 +48,97 @@ namespace SportsBook.Infrastructure.Repository
             return _dbSet.Find(id);
         }
 
-        public virtual void Insert(TEntity entity)
+        public virtual TEntity Search(params object[] keyValues)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region Add methods
+        public virtual void Add(TEntity entity)
         {
             _dbSet.Add(entity);
-            _unitOfWork.Save();
         }
 
-        public virtual void Delete(object id)
+        public virtual void Add(params TEntity[] entities)
         {
-            TEntity entityToDelete = _dbSet.Find(id);
-            Delete(entityToDelete);
+            _dbSet.AddRange(entities);
         }
 
-        public virtual void Delete(TEntity entityToDelete)
+        public virtual void Add(IEnumerable<TEntity> entities)
         {
-            if (_unitOfWork.Context.Entry(entityToDelete).State == EntityState.Detached)
+            _dbSet.AddRange(entities);
+        }
+        #endregion
+
+        #region Delete methods
+        public virtual void Delete(TEntity entity)
+        {
+            if (_context.Entry(entity).State == EntityState.Detached)
             {
-                _dbSet.Attach(entityToDelete);
+                _dbSet.Attach(entity);
             }
-            _dbSet.Remove(entityToDelete);
-            _unitOfWork.Save();
+            _dbSet.Remove(entity);
         }
 
-        public virtual void Update(TEntity entityToUpdate)
+        public virtual void Delete(params TEntity[] entities)
         {
-            _dbSet.Attach(entityToUpdate);
-            _unitOfWork.Context.Entry(entityToUpdate).State = EntityState.Modified;
-            _unitOfWork.Save();
+            foreach (TEntity ent in entities)
+            {
+                if (_context.Entry(ent).State == EntityState.Detached)
+                {
+                    _dbSet.Attach(ent);
+                }
+            }
+            _dbSet.RemoveRange(entities);
+        }
+
+        public virtual void Delete(IEnumerable<TEntity> entities)
+        {
+            foreach (TEntity ent in entities)
+            {
+                if (_context.Entry(ent).State == EntityState.Detached)
+                {
+                    _dbSet.Attach(ent);
+                }
+            }
+            _dbSet.RemoveRange(entities);
+        }
+        #endregion
+
+        #region Update methods
+        public virtual void Update(TEntity entity)
+        {
+            _dbSet.Attach(entity);
+            _context.Entry(entity).State = EntityState.Modified;
+            _dbSet.Update(entity);
+        }
+
+        public void Update(IEnumerable<TEntity> entities)
+        {
+            foreach (TEntity ent in entities)
+            {
+                _dbSet.Attach(ent);
+                _context.Entry(ent).State = EntityState.Modified;
+            }
+            _dbSet.UpdateRange(entities);
+        }
+
+        public void Update(params TEntity[] entities)
+        {
+            foreach (TEntity ent in entities)
+            {
+                _dbSet.Attach(ent);
+                _context.Entry(ent).State = EntityState.Modified;
+            }
+            _dbSet.UpdateRange(entities);
+        }
+        #endregion
+
+
+        public void Dispose()
+        {
+            _context?.Dispose();
         }
     }
 }
