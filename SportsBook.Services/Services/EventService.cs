@@ -50,7 +50,7 @@ namespace SportsBook.Services.Services
 
                 return true;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
@@ -82,7 +82,7 @@ namespace SportsBook.Services.Services
 
                 return true;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);
@@ -115,7 +115,7 @@ namespace SportsBook.Services.Services
 
                 return true;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 //TODO: Implement proper error handling
                 Console.WriteLine(ex.Message);

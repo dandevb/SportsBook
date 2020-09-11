@@ -3,10 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SportsBook.Domain.SeedWork;
 using SportsBook.Infrastructure;
-using SportsBook.Infrastructure.Repository;
-using SportsBook.Services;
 using SportsBook.Services.DependencyInjection;
-using SportsBook.Services.Services;
 
 namespace SportsBook
 {

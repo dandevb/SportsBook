@@ -1,5 +1,4 @@
-﻿using SportsBook.Domain.SeedWork;
-using SportsBook.Infrastructure.Repository;
+﻿using SportsBook.Infrastructure.Repository;
 using System;
 
 namespace SportsBook.Services.Services

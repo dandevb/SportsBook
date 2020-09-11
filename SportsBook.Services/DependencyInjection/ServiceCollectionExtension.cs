@@ -6,6 +6,9 @@ using SportsBook.Services.Services;
 
 namespace SportsBook.Services.DependencyInjection
 {
+    /// <summary>
+    /// Use this static class to keep track of the settings for services using dependency injection. TODO: include more options for API Server
+    /// </summary>
     public static class ServiceCollectionExtension
     {
         public static IServiceCollection AddServices(this IServiceCollection services)
