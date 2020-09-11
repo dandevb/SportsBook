@@ -10,4 +10,44 @@ I would normally use Mapper for my domain entities and DTOs but decided to try m
 - Add all the Unit tests for repository, UoW and domain entities. 
 - Use API server using repository and also to practice Web API and REST practices.
 
-# Business rules
+# Business rules for models
+A sport contains the following elements:
+- Name
+- Display Name
+- Slug (url friendly version of name)
+- Order
+- Active (Either true or false)
+
+An event contains the following elements:
+- Name
+- Event Type (Either preplay or inplay)
+- Sport
+- Status (Preplay, Inplay or Ended)
+- Slug (url friendly version of name)
+- Active (Either true or false)
+
+A market contains the following elements:
+- Name
+- Display Name
+- Order
+- Active (Either true or false)
+- Schema (integer value which controls how market is displayed)
+- Columns (number of columns used in display)
+
+A selection contains the following elements:
+- Name
+- Event
+- Market
+- Price (Decimal value, to 2 decimal places)
+- Active (Either true or false)
+- Outcome (Unsettled, Void, Lose, Place, Win)
+
+Implement a system which manages multiple sports, events, markets, and selections.
+
+# Business Requirements
+- A sport may have multiple events
+- An event may have multiple markets
+- A market may have multiple selections
+- When all the selections of a particular market are inactive, the market becomes inactive
+- When all the markets of an event are inactive, the event becomes inactive
+- When all the events of an sport are inactive, the sport becomes inactive
