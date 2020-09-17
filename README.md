@@ -51,3 +51,10 @@ Implement a system which manages multiple sports, events, markets, and selection
 - When all the selections of a particular market are inactive, the market becomes inactive
 - When all the markets of an event are inactive, the event becomes inactive
 - When all the events of an sport are inactive, the sport becomes inactive
+
+# Unit Testing
+Planning to use NUnit, MSTest and Mock as frameworks to practice unit testing in this project.
+My goals for unit testing are:
+- Unit test repository, UoW and entities
+- Follow the best practices defined here: https://docs.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices
+- Practice a TDD approach on the API server
